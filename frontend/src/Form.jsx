@@ -4,6 +4,10 @@ const Form = () => {
   const [fileinput, setfileinput] = useState(null);
   const [selectedimage, setselectedimage] = useState(null);
 
+  // ✅ Use environment variable (falls back to localhost if not set)
+  const API_URL = import.meta.env.VITE_API_URL;
+  //import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   useEffect(() => {
     const savedimage = localStorage.getItem("selectedimage");
     if (savedimage) {
@@ -13,7 +17,6 @@ const Form = () => {
 
   const onChangeHandle = (e) => setfileinput(e.target.files[0]);
 
-
   const handleImage = async (e) => {
     e.preventDefault();
     if (!fileinput) return;
@@ -22,7 +25,8 @@ const Form = () => {
     formData.append("image", fileinput);
 
     try {
-      const response = await fetch("http://localhost:5000/api/image/upload", {
+      // ✅ Use API_URL instead of hardcoding
+      const response = await fetch(`${API_URL}/api/image/upload`, {
         method: "POST",
         body: formData,
       });
@@ -34,7 +38,7 @@ const Form = () => {
       const data = await response.json();
       console.log("Upload response:", data);
 
-      const imgRes = await fetch(`http://localhost:5000/api/image/${data.id}`);
+      const imgRes = await fetch(`${API_URL}/api/image/${data.id}`);
       if (!imgRes.ok) {
         throw new Error("Failed to fetch uploaded image");
       }
@@ -52,11 +56,7 @@ const Form = () => {
   return (
     <div>
       <form onSubmit={handleImage}>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={onChangeHandle}
-        />
+        <input type="file" accept="image/*" onChange={onChangeHandle} />
         <br />
         <button type="submit">Upload Image</button>
       </form>

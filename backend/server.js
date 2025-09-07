@@ -5,16 +5,21 @@ const imageRoutes = require("./routes");
 
 const app = express();
 
-app.use(cors());
+// ✅ Configure CORS: allow only your Vercel frontend
+app.use(cors({
+  origin: ["https://your-frontend.vercel.app"], // replace with your actual Vercel URL
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
 app.use(express.json());
 
 app.use("/api/image", imageRoutes);
 
 mongoose
-  .connect(
-    "mongodb+srv://chandrakanthhv9964_db_user:Kanth%409964@cluster0.tw6t7cb.mongodb.net/multer?retryWrites=true&w=majority&appName=Cluster0"
-  )
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB error:", err));
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log(" MongoDB connected"))
+  .catch((err) => console.error(" MongoDB error:", err));
 
-app.listen(5000, () => console.log("🚀 Server running at http://localhost:5000"));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(` Server running at http://localhost:${PORT}`));
