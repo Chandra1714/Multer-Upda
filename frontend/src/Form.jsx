@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 const Form = () => {
   const [fileinput, setfileinput] = useState(null);
   const [selectedimage, setselectedimage] = useState(null);
-
-  // ✅ Use environment variable (falls back to localhost if not set)
-  const API_URL = import.meta.env.VITE_API_URL;
-  //import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   useEffect(() => {
     const savedimage = localStorage.getItem("selectedimage");
@@ -25,7 +23,7 @@ const Form = () => {
     formData.append("image", fileinput);
 
     try {
-      // ✅ Use API_URL instead of hardcoding
+      // 🔹 Upload image
       const response = await fetch(`${API_URL}/api/image/upload`, {
         method: "POST",
         body: formData,
@@ -38,7 +36,15 @@ const Form = () => {
       const data = await response.json();
       console.log("Upload response:", data);
 
-      const imgRes = await fetch(`${API_URL}/api/image/${data.id}`);
+      // ✅ handle both `id` and `_id`
+      const imageId = data.id || data._id;
+
+      if (!imageId) {
+        throw new Error("No image ID returned from backend");
+      }
+
+      // 🔹 Fetch uploaded image
+      const imgRes = await fetch(`${API_URL}/api/image/${imageId}`);
       if (!imgRes.ok) {
         throw new Error("Failed to fetch uploaded image");
       }
