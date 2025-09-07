@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-// Use environment variable for API URL
+// Backend API URL from environment variable
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const Form = () => {
@@ -20,7 +20,7 @@ const Form = () => {
 
   // Convert ArrayBuffer to Base64
   const arrayBufferToBase64 = (buffer) => {
-    let binary = '';
+    let binary = "";
     const bytes = new Uint8Array(buffer);
     const len = bytes.byteLength;
     for (let i = 0; i < len; i++) {
@@ -38,7 +38,7 @@ const Form = () => {
     formData.append("image", fileinput);
 
     try {
-      // Upload image
+      // Upload image to backend
       const response = await fetch(`${API_URL}/api/image/upload`, {
         method: "POST",
         body: formData,
@@ -49,16 +49,16 @@ const Form = () => {
       const data = await response.json();
       console.log("Upload response:", data);
 
-      // Fetch uploaded image
+      // Fetch uploaded image from backend
       const imgRes = await fetch(`${API_URL}/api/image/${data.id}`);
       if (!imgRes.ok) throw new Error("Failed to fetch uploaded image");
 
       const arrayBuffer = await imgRes.arrayBuffer();
       const base64 = arrayBufferToBase64(arrayBuffer);
-      const url = `data:image/png;base64,${base64}`; // Adjust mime type if needed
+      const url = `data:image/png;base64,${base64}`; // Adjust mime type dynamically if needed
 
       setselectedimage(url);
-      localStorage.setItem("selectedimage", url);
+      localStorage.setItem("selectedimage", url); // persist across reloads/devices
 
     } catch (err) {
       console.error("Error uploading images:", err);
@@ -76,7 +76,12 @@ const Form = () => {
       {selectedimage && (
         <div style={{ marginTop: "20px" }}>
           <h3>Uploaded Image:</h3>
-          <img src={selectedimage} alt="Uploaded" width="200" style={{ borderRadius: "8px" }} />
+          <img
+            src={selectedimage}
+            alt="Uploaded"
+            width="200"
+            style={{ borderRadius: "8px" }}
+          />
         </div>
       )}
     </div>

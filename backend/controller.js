@@ -1,6 +1,5 @@
 const Image = require("./model");
 
-
 const postingimage = async (req, res) => {
   try {
     if (!req.file) {
@@ -17,7 +16,6 @@ const postingimage = async (req, res) => {
 
     console.log("✅ Image uploaded:", savedImage._id);
 
-  
     res.json({ id: savedImage._id });
   } catch (err) {
     console.error("❌ Error uploading image:", err);
@@ -25,7 +23,7 @@ const postingimage = async (req, res) => {
   }
 };
 
-
+// Get single image by ID
 const singleimage = async (req, res) => {
   try {
     const image = await Image.findById(req.params.id);
