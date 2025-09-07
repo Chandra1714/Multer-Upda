@@ -1,20 +1,35 @@
 import React, { useEffect, useState } from "react";
 
+// Use environment variable for API URL
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const Form = () => {
   const [fileinput, setfileinput] = useState(null);
   const [selectedimage, setselectedimage] = useState(null);
 
+  // Load saved image from localStorage
   useEffect(() => {
-    const savedimage = localStorage.getItem("selectedimage");
-    if (savedimage) {
-      setselectedimage(savedimage);
+    const savedImage = localStorage.getItem("selectedimage");
+    if (savedImage) {
+      setselectedimage(savedImage);
     }
   }, []);
 
+  // Handle file selection
   const onChangeHandle = (e) => setfileinput(e.target.files[0]);
 
+  // Convert ArrayBuffer to Base64
+  const arrayBufferToBase64 = (buffer) => {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  };
+
+  // Handle image upload
   const handleImage = async (e) => {
     e.preventDefault();
     if (!fileinput) return;
@@ -23,54 +38,45 @@ const Form = () => {
     formData.append("image", fileinput);
 
     try {
-      // 🔹 Upload image
+      // Upload image
       const response = await fetch(`${API_URL}/api/image/upload`, {
         method: "POST",
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
 
       const data = await response.json();
       console.log("Upload response:", data);
 
-      // ✅ handle both `id` and `_id`
-      const imageId = data.id || data._id;
+      // Fetch uploaded image
+      const imgRes = await fetch(`${API_URL}/api/image/${data.id}`);
+      if (!imgRes.ok) throw new Error("Failed to fetch uploaded image");
 
-      if (!imageId) {
-        throw new Error("No image ID returned from backend");
-      }
-
-      // 🔹 Fetch uploaded image
-      const imgRes = await fetch(`${API_URL}/api/image/${imageId}`);
-      if (!imgRes.ok) {
-        throw new Error("Failed to fetch uploaded image");
-      }
-
-      const blob = await imgRes.blob();
-      const url = URL.createObjectURL(blob);
+      const arrayBuffer = await imgRes.arrayBuffer();
+      const base64 = arrayBufferToBase64(arrayBuffer);
+      const url = `data:image/png;base64,${base64}`; // Adjust mime type if needed
 
       setselectedimage(url);
       localStorage.setItem("selectedimage", url);
+
     } catch (err) {
       console.error("Error uploading images:", err);
     }
   };
 
   return (
-    <div>
+    <div style={{ padding: "20px", textAlign: "center" }}>
       <form onSubmit={handleImage}>
         <input type="file" accept="image/*" onChange={onChangeHandle} />
-        <br />
+        <br /><br />
         <button type="submit">Upload Image</button>
       </form>
 
       {selectedimage && (
-        <div>
+        <div style={{ marginTop: "20px" }}>
           <h3>Uploaded Image:</h3>
-          <img src={selectedimage} alt="Uploaded" width="200" />
+          <img src={selectedimage} alt="Uploaded" width="200" style={{ borderRadius: "8px" }} />
         </div>
       )}
     </div>
