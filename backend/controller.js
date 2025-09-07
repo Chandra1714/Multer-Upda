@@ -13,14 +13,18 @@ const postingimage = async (req, res) => {
       imageData: req.file.buffer,
     });
 
-    await image.save();
+    const savedImage = await image.save();
 
-    res.json({ id: image._id }); 
+    console.log("✅ Image uploaded:", savedImage._id);
+
+  
+    res.json({ id: savedImage._id });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error uploading image:", err);
     res.status(500).json({ error: "Failed to upload image" });
   }
 };
+
 
 const singleimage = async (req, res) => {
   try {
@@ -30,10 +34,12 @@ const singleimage = async (req, res) => {
       return res.status(404).json({ error: "Image not found" });
     }
 
+    console.log("📤 Sending image:", req.params.id);
+
     res.set("Content-Type", image.contentType);
     res.send(image.imageData);
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error fetching image:", err);
     res.status(500).json({ error: "Failed to fetch image" });
   }
 };
