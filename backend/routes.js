@@ -7,7 +7,7 @@ router.get("/health", (req, res) => {
   res.json({ status: "ok", message: "Backend API is working " });
 });
 
-router.post("/upload", upload.single("image"), postingimage);
+router.post("/upload", upload.array("image", 10), postingimage);
 
 router.get("/:id", singleimage);
 
