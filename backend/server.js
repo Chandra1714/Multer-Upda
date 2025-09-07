@@ -7,7 +7,7 @@ const app = express();
 
 // ✅ Configure CORS: allow only your Vercel frontend
 app.use(cors({
-  origin: ["multer-fb-images-updated.vercel.app"], 
+  origin: "*", //"multer-fb-images-updated.vercel.app", 
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));

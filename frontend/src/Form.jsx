@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 // API_URL points to your Render backend base (no /api/image)
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL ;
 
 const Form = () => {
   const [fileinput, setfileinput] = useState([]);
@@ -37,10 +37,10 @@ const Form = () => {
       fileinput.forEach((file) => formData.append("images", file));
 
       // ✅ Upload images
-      const response = await fetch(`${API_URL}/api/image/upload`, {
-        method: "POST",
-        body: formData,
-      });
+     const response = await fetch(`${API_URL}/api/image/upload`, {
+  method: "POST",
+  body: formData,
+});
 
       if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
 
