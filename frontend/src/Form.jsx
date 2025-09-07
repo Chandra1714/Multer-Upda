@@ -1,21 +1,19 @@
 import React, { useEffect, useState } from "react";
 
-// ✅ API_URL already includes /api/image
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/image";
+// API_URL points to your Render backend base (no /api/image)
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const Form = () => {
   const [fileinput, setfileinput] = useState([]);
-  const [selectedimages, setselectedimages] = useState([]);
+  const [selectedImages, setSelectedImages] = useState([]);
 
   // Load saved images from localStorage
   useEffect(() => {
-    const savedImages = JSON.parse(localStorage.getItem("selectedimages"));
-    if (savedImages) {
-      setselectedimages(savedImages);
-    }
+    const saved = JSON.parse(localStorage.getItem("selectedImages"));
+    if (saved) setSelectedImages(saved);
   }, []);
 
-  // Handle file selection (multiple allowed)
+  // Handle file selection (multiple)
   const onChangeHandle = (e) => setfileinput(Array.from(e.target.files));
 
   // Convert ArrayBuffer to Base64
@@ -34,12 +32,12 @@ const Form = () => {
     e.preventDefault();
     if (fileinput.length === 0) return;
 
-    const formData = new FormData();
-    fileinput.forEach((file) => formData.append("images", file));
-
     try {
-      // ✅ Upload to backend
-      const response = await fetch(`${API_URL}/upload`, {
+      const formData = new FormData();
+      fileinput.forEach((file) => formData.append("images", file));
+
+      // ✅ Upload images
+      const response = await fetch(`${API_URL}/api/image/upload`, {
         method: "POST",
         body: formData,
       });
@@ -47,23 +45,26 @@ const Form = () => {
       if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
 
       const data = await response.json();
-      console.log("Upload response:", data);
 
-      // ✅ Fetch each uploaded image
+      // Fetch each uploaded image
       const newImages = [];
       for (const img of data.uploaded) {
-        const imgRes = await fetch(`${API_URL}/${img.id}`);
+        const imgRes = await fetch(`${API_URL}/api/image/${img.id}`);
         if (!imgRes.ok) throw new Error("Failed to fetch uploaded image");
 
         const arrayBuffer = await imgRes.arrayBuffer();
-        const base64 = arrayBufferToBase64(arrayBuffer);
-        const url = `data:${img.contentType};base64,${base64}`;
+        const url = `data:image/png;base64,${arrayBufferToBase64(arrayBuffer)}`;
         newImages.push(url);
       }
 
-      const updated = [...selectedimages, ...newImages];
-      setselectedimages(updated);
-      localStorage.setItem("selectedimages", JSON.stringify(updated));
+      const allImages = [...selectedImages, ...newImages];
+      setSelectedImages(allImages);
+      localStorage.setItem("selectedImages", JSON.stringify(allImages));
+
+      // Reset file input
+      setfileinput([]);
+      document.getElementById("fileInput").value = "";
+
     } catch (err) {
       console.error("Error uploading images:", err);
     }
@@ -72,16 +73,29 @@ const Form = () => {
   return (
     <div style={{ padding: "20px", textAlign: "center" }}>
       <form onSubmit={handleImage}>
-        <input type="file" accept="image/*" multiple onChange={onChangeHandle} />
+        <input
+          id="fileInput"
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={onChangeHandle}
+        />
         <br /><br />
         <button type="submit">Upload Image(s)</button>
       </form>
 
-      {selectedimages.length > 0 && (
+      {selectedImages.length > 0 && (
         <div style={{ marginTop: "20px" }}>
           <h3>Uploaded Images:</h3>
-          <div style={{ display: "flex", gap: "15px", flexWrap: "wrap", justifyContent: "center" }}>
-            {selectedimages.map((img, index) => (
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "15px",
+              justifyContent: "center",
+            }}
+          >
+            {selectedImages.map((img, index) => (
               <img
                 key={index}
                 src={img}
