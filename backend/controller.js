@@ -21,13 +21,15 @@ const postingimage = async (req, res) => {
 
     console.log("✅ Images uploaded:", savedImages.map(img => img.id));
 
+    // ✅ Return array of uploaded images
     res.json({ uploaded: savedImages });
   } catch (err) {
-    console.error("❌ Error uploading images:", err);
-    res.status(500).json({ error: "Failed to upload images" });
+    console.error("❌ Error uploading image:", err);
+    res.status(500).json({ error: "Failed to upload image" });
   }
 };
 
+// Get single image by ID
 const singleimage = async (req, res) => {
   try {
     const image = await Image.findById(req.params.id);

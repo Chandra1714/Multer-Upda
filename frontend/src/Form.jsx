@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from "react";
-import "./Form.css"; 
 
-const API_URL = import.meta.env.VITE_API_URL ;
+// ✅ API_URL already includes /api/image
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/image";
 
 const Form = () => {
   const [fileinput, setfileinput] = useState([]);
-  const [images, setImages] = useState([]);
+  const [selectedimages, setselectedimages] = useState([]);
 
+  // Load saved images from localStorage
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("uploadedImages"));
-    if (saved && saved.length > 0) {
-      setImages(saved);
+    const savedImages = JSON.parse(localStorage.getItem("selectedimages"));
+    if (savedImages) {
+      setselectedimages(savedImages);
     }
   }, []);
 
-  const onChangeHandle = (e) => setfileinput([...e.target.files]);
+  // Handle file selection (multiple allowed)
+  const onChangeHandle = (e) => setfileinput(Array.from(e.target.files));
 
+  // Convert ArrayBuffer to Base64
   const arrayBufferToBase64 = (buffer) => {
     let binary = "";
     const bytes = new Uint8Array(buffer);
@@ -26,67 +29,66 @@ const Form = () => {
     return window.btoa(binary);
   };
 
+  // Handle image upload
   const handleImage = async (e) => {
     e.preventDefault();
     if (fileinput.length === 0) return;
 
+    const formData = new FormData();
+    fileinput.forEach((file) => formData.append("images", file));
+
     try {
-      let uploaded = [];
+      // ✅ Upload to backend
+      const response = await fetch(`${API_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      });
 
-      for (const file of fileinput) {
-        const formData = new FormData();
-        formData.append("image", file);
+      if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
 
-        const response = await fetch(`${API_URL}/api/image/upload`, {
-          method: "POST",
-          body: formData,
-        });
+      const data = await response.json();
+      console.log("Upload response:", data);
 
-        if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
-
-        const data = await response.json();
-
-        const imgRes = await fetch(`${API_URL}/api/image/${data.id}`);
+      // ✅ Fetch each uploaded image
+      const newImages = [];
+      for (const img of data.uploaded) {
+        const imgRes = await fetch(`${API_URL}/${img.id}`);
         if (!imgRes.ok) throw new Error("Failed to fetch uploaded image");
 
         const arrayBuffer = await imgRes.arrayBuffer();
         const base64 = arrayBufferToBase64(arrayBuffer);
-        const url = `data:image/png;base64,${base64}`;
-
-        uploaded.push(url);
+        const url = `data:${img.contentType};base64,${base64}`;
+        newImages.push(url);
       }
 
-      const allImages = [...images, ...uploaded];
-      setImages(allImages);
-      localStorage.setItem("uploadedImages", JSON.stringify(allImages));
-
-      setfileinput([]);
-      document.getElementById("fileInput").value = "";
-
+      const updated = [...selectedimages, ...newImages];
+      setselectedimages(updated);
+      localStorage.setItem("selectedimages", JSON.stringify(updated));
     } catch (err) {
       console.error("Error uploading images:", err);
     }
   };
 
   return (
-    <div className="form-container">
-      <form onSubmit={handleImage} className="upload-form">
-        <input
-          id="fileInput"
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={onChangeHandle}
-        />
-        <button type="submit">Upload</button>
+    <div style={{ padding: "20px", textAlign: "center" }}>
+      <form onSubmit={handleImage}>
+        <input type="file" accept="image/*" multiple onChange={onChangeHandle} />
+        <br /><br />
+        <button type="submit">Upload Image(s)</button>
       </form>
 
-      {images.length > 0 && (
-        <div className="gallery">
+      {selectedimages.length > 0 && (
+        <div style={{ marginTop: "20px" }}>
           <h3>Uploaded Images:</h3>
-          <div className="image-grid">
-            {images.map((img, i) => (
-              <img key={i} src={img} alt={`Uploaded ${i}`} />
+          <div style={{ display: "flex", gap: "15px", flexWrap: "wrap", justifyContent: "center" }}>
+            {selectedimages.map((img, index) => (
+              <img
+                key={index}
+                src={img}
+                alt={`Uploaded ${index}`}
+                width="200"
+                style={{ borderRadius: "8px" }}
+              />
             ))}
           </div>
         </div>
