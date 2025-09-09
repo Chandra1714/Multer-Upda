@@ -1,15 +1,14 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();  
+require("dotenv").config();
 
 const imageRoutes = require("./routes");
 
 const app = express();
 
-
+// ✅ CORS for localhost + any Vercel frontend
 app.use(cors({
-  
   origin: (origin, callback) => {
     if (!origin || origin === "http://localhost:5173" || origin.endsWith(".vercel.app")) {
       callback(null, true);
@@ -17,9 +16,8 @@ app.use(cors({
       callback(new Error("Not allowed by CORS"));
     }
   },
-
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET","POST","PUT","DELETE"],
+  allowedHeaders: ["Content-Type","Authorization"],
   credentials: true
 }));
 

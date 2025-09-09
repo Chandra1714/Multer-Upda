@@ -14,46 +14,37 @@ const Form = () => {
 
   const onChangeHandle = (e) => setfileinput(Array.from(e.target.files));
 
-  const handleImage = async (e) => {
-    e.preventDefault();
-    if (fileinput.length === 0) return;
+ const handleImage = async (e) => {
+  e.preventDefault();
+  if (fileinput.length === 0) return;
 
-    try {
-      const formData = new FormData();
-      fileinput.forEach((file) => formData.append("image", file)); // ✅ match backend
+  try {
+    const formData = new FormData();
+    fileinput.forEach((file) => formData.append("image", file));
 
-      console.log("Uploading to:", `${API_URL}/api/image/upload`);
+    const response = await fetch(`${API_URL}/api/image/upload`, {
+      method: "POST",
+      body: formData,
+    });
 
-      const response = await fetch(`${API_URL}/api/image/upload`, {
-        method: "POST",
-        body: formData,
-      });
+    if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
 
-      if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
+    const data = await response.json();
 
-      const data = await response.json();
+    // Directly use preview URLs returned from backend
+    const newImages = data.uploaded.map(img => img.url);
+    const allImages = [...selectedImages, ...newImages];
 
-      const newImages = [];
-      for (const img of data.uploaded) {
-        const imgRes = await fetch(`${API_URL}/api/image/${img.id}`);
-        if (!imgRes.ok) throw new Error("Failed to fetch uploaded image");
+    setSelectedImages(allImages);
+    localStorage.setItem("selectedImages", JSON.stringify(allImages));
 
-        const blob = await imgRes.blob();
-        const url = URL.createObjectURL(blob);
-        newImages.push(url);
-      }
+    setfileinput([]);
+    document.getElementById("fileInput").value = "";
 
-      const allImages = [...selectedImages, ...newImages];
-      setSelectedImages(allImages);
-      localStorage.setItem("selectedImages", JSON.stringify(allImages));
-
-      setfileinput([]);
-      document.getElementById("fileInput").value = "";
-
-    } catch (err) {
-      console.error("Error uploading images:", err);
-    }
-  };
+  } catch (err) {
+    console.error("Error uploading images:", err);
+  }
+};
 
   return (
     <div style={{ padding: "20px", textAlign: "center" }}>
