@@ -8,7 +8,7 @@ const app = express();
 
 app.use(cors({
   origin: [
-    "https://multer-fb-2.vercel.app",  
+    "multer-upda.vercel.app",  
     "http://localhost:5173"            
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
