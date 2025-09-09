@@ -10,7 +10,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",          
-    "multer-upda-ia7u.vercel.app" 
+    "multer-upda-qdfh.vercel.app" 
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders:["Content-Type","Authorization"],
