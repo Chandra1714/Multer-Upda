@@ -2,14 +2,15 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const imageRoutes = require("./routes");
+require("dotenv").config(); 
 
 const app = express();
 
 
 app.use(cors({
   origin: [
-    "multer-upda.vercel.app",  
-    "http://localhost:5173"            
+    "http://localhost:5173",          
+    "https://multer-upda.vercel.app" 
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
