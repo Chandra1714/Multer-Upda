@@ -10,7 +10,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",          
-    "https://multer-upda.vercel.app" 
+    "multer-upda-daxp.vercel.app" 
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
