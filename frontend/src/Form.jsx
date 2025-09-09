@@ -1,22 +1,17 @@
 import React, { useEffect, useState } from "react";
-
-// API_URL points to your Render backend base (no /api/image)
 const API_URL = import.meta.env.VITE_API_URL ;
 
 const Form = () => {
   const [fileinput, setfileinput] = useState([]);
   const [selectedImages, setSelectedImages] = useState([]);
 
-  // Load saved images from localStorage
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("selectedImages"));
     if (saved) setSelectedImages(saved);
   }, []);
 
-  // Handle file selection (multiple)
   const onChangeHandle = (e) => setfileinput(Array.from(e.target.files));
 
-  // Convert ArrayBuffer to Base64
   const arrayBufferToBase64 = (buffer) => {
     let binary = "";
     const bytes = new Uint8Array(buffer);
@@ -27,17 +22,15 @@ const Form = () => {
     return window.btoa(binary);
   };
 
-  // Handle image upload
   const handleImage = async (e) => {
     e.preventDefault();
     if (fileinput.length === 0) return;
 
     try {
       const formData = new FormData();
-      fileinput.forEach((file) => formData.append("images", file));
+      fileinput.forEach((file) => formData.append("image", file)); 
 
-      // ✅ Upload images
-     const response = await fetch(`${API_URL}/api/image/upload`, {
+const response = await fetch(`${API_URL}/api/image/upload`, {
   method: "POST",
   body: formData,
 });
@@ -46,7 +39,6 @@ const Form = () => {
 
       const data = await response.json();
 
-      // Fetch each uploaded image
       const newImages = [];
       for (const img of data.uploaded) {
         const imgRes = await fetch(`${API_URL}/api/image/${img.id}`);
@@ -61,7 +53,6 @@ const Form = () => {
       setSelectedImages(allImages);
       localStorage.setItem("selectedImages", JSON.stringify(allImages));
 
-      // Reset file input
       setfileinput([]);
       document.getElementById("fileInput").value = "";
 
