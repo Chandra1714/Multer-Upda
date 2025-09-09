@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+// API URL from .env or fallback to localhost
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const Form = () => {
   const [fileinput, setfileinput] = useState([]);
@@ -13,28 +14,20 @@ const Form = () => {
 
   const onChangeHandle = (e) => setfileinput(Array.from(e.target.files));
 
-  const arrayBufferToBase64 = (buffer) => {
-    let binary = "";
-    const bytes = new Uint8Array(buffer);
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
-  };
-
   const handleImage = async (e) => {
     e.preventDefault();
     if (fileinput.length === 0) return;
 
     try {
       const formData = new FormData();
-      fileinput.forEach((file) => formData.append("image", file)); 
+      fileinput.forEach((file) => formData.append("image", file)); // ✅ match backend
 
-const response = await fetch(`${API_URL}/api/image/upload`, {
-  method: "POST",
-  body: formData,
-});
+      console.log("Uploading to:", `${API_URL}/api/image/upload`);
+
+      const response = await fetch(`${API_URL}/api/image/upload`, {
+        method: "POST",
+        body: formData,
+      });
 
       if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
 
@@ -45,8 +38,8 @@ const response = await fetch(`${API_URL}/api/image/upload`, {
         const imgRes = await fetch(`${API_URL}/api/image/${img.id}`);
         if (!imgRes.ok) throw new Error("Failed to fetch uploaded image");
 
-        const arrayBuffer = await imgRes.arrayBuffer();
-        const url = `data:image/png;base64,${arrayBufferToBase64(arrayBuffer)}`;
+        const blob = await imgRes.blob();
+        const url = URL.createObjectURL(blob);
         newImages.push(url);
       }
 
